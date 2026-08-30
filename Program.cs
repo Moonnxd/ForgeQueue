@@ -22,46 +22,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-List<Job> jobList = new List<Job>();
-
-jobList.Add(new Job{
-    Id = 1,
-    Type = "IMAGE_PROCESSING",
-    Payload = "image-001.png",
-    Status = JobStatus.Queued,
-    CreatedAt = DateTime.UtcNow
+app.MapGet("/api/jobs", async (ForgeQueueDbContext db) => {
+    var jobs = await db.Jobs.ToListAsync();
+    return Results.Ok(jobs);
 });
 
-jobList.Add(new Job{
-    Id = 2,
-    Type = "EMAIL_NOTIFICATION",
-    Payload = "user123@example.com",
-    Status = JobStatus.Queued,
-    CreatedAt = DateTime.UtcNow
-});
-
-app.MapGet("/api/jobs", () => {
-    return Results.Ok(jobList);
-});
-
-app.MapPost("/api/jobs", (CreateJobRequest request) => {
-    int nextId = jobList.Max(j => j.Id) + 1;
-
+app.MapPost("/api/jobs", async (CreateJobRequest request ,ForgeQueueDbContext db) => {
     var newJob = new Job {
-        Id = nextId,
         Type = request.Type,
         Payload = request.Payload,
         Status = JobStatus.Queued,
         CreatedAt = DateTime.UtcNow
     };
 
-    jobList.Add(newJob);
+    db.Jobs.Add(newJob);
+    await db.SaveChangesAsync();
 
     return Results.Created($"/api/jobs/{newJob.Id}", newJob);
 });
 
-app.MapGet("/api/jobs/{id}", (int id) => {
-    var job = jobList.FirstOrDefault(j => j.Id == id);
+app.MapGet("/api/jobs/{id}", async (int id, ForgeQueueDbContext db) => {
+    var job = await db.Jobs.FindAsync(id);
 
     if(job == null){
         return Results.NotFound();
