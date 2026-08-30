@@ -1,6 +1,6 @@
 namespace ForgeQueue.Models;
 
 public class CreateJobRequest{
-    public string Type {get; set;}
-    public string Payload {get; set;}
+    public required string Type {get; set;}
+    public required string Payload {get; set;}
 }
