@@ -58,4 +58,14 @@ app.MapPost("/api/jobs", (CreateJobRequest request) => {
     return Results.Created($"/api/jobs/{newJob.Id}", newJob);
 });
 
+app.MapGet("/api/jobs/{id}", (int id) => {
+    var job = jobList.FirstOrDefault(j => j.Id == id);
+
+    if(job == null){
+        return Results.NotFound();
+    }else{
+        return Results.Ok(job);
+    }
+});
+
 app.Run();
