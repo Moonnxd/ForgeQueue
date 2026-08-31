@@ -51,4 +51,21 @@ app.MapGet("/api/jobs/{id}", async (int id, ForgeQueueDbContext db) => {
     }
 });
 
+app.MapPatch("/api/jobs/{id}/status", async (int id, UpdateJobStatusRequest request, ForgeQueueDbContext db) => {
+    var job = await db.Jobs.FindAsync(id);
+
+    if(job == null){
+        return Results.NotFound();
+    }
+
+    bool isTransitioned = job.TryTransitionTo(request.NewStatus, out var errorMessage);
+
+    if(!isTransitioned){
+        return Results.Conflict(errorMessage);
+    }else{
+        await db.SaveChangesAsync();
+        return Results.Ok(job);
+    }
+});
+
 app.Run();
