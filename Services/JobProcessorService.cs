@@ -1,5 +1,10 @@
 namespace ForgeQueue.Services;
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using ForgeQueue.Data;
+using ForgeQueue.Models;
+
 public class JobProcessorService : BackgroundService{
 
     private readonly IServiceScopeFactory _scopeFactory;
@@ -20,6 +25,13 @@ public class JobProcessorService : BackgroundService{
                 foreach(var job in queuedJobs){
                     job.TryTransitionTo(JobStatus.Processing, out var errorMessage);
 
+                    await db.SaveChangesAsync();
+
+                    await Task.Delay(5000, stoppingToken);
+
+                    job.TryTransitionTo(JobStatus.Completed, out errorMessage);
+
+                    await db.SaveChangesAsync();
                 }
             }
 
