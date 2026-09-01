@@ -9,6 +9,12 @@ public class JobProcessorService : BackgroundService{
 
     private readonly IServiceScopeFactory _scopeFactory;
 
+    private readonly Dictionary<string, int> _jobDurationMs = new Dictionary<string, int>{
+        {"IMAGE_PROCESSING", 8000},
+        {"EMAIL_NOTIFICATION", 2000},
+        {"MESSAGE_READING", 3000}
+    };
+
     public JobProcessorService(IServiceScopeFactory scopeFactory){
         _scopeFactory = scopeFactory;
     }
@@ -27,7 +33,12 @@ public class JobProcessorService : BackgroundService{
 
                     await db.SaveChangesAsync();
 
-                    await Task.Delay(5000, stoppingToken);
+                    int duration;
+                    if(!_jobDurationMs.TryGetValue(job.Type, out duration)){
+                        duration = 3000;
+                    }
+
+                    await Task.Delay(duration, stoppingToken);
 
                     job.TryTransitionTo(JobStatus.Completed, out errorMessage);
 
