@@ -1,6 +1,7 @@
 using ForgeQueue.Models;
 using ForgeQueue.Data;
 using Microsoft.EntityFrameworkCore;
+using ForgeQueue.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
@@ -9,6 +10,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
+
+builder.Services.AddHostedService<JobProcessorService>();
 
 builder.Services.AddDbContext<ForgeQueueDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("ForgeQueueDb")));
 
